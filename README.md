@@ -1,4 +1,4 @@
-# 💳 Credit Card Customer Segmentation
+# 💳 PowerCo's Churn Risk Management
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![VS Code](https://img.shields.io/badge/Visual%20Studio%20Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
@@ -10,6 +10,7 @@ The energy market has undergone massive transformation—new players in the mark
 
 ## 🎯 Project Output
 The objective of this program gives recommendation action for handling potential churn customers
+
 ---
 
 ## 📂 Repository Outline
@@ -29,7 +30,7 @@ The objective of this program gives recommendation action for handling potential
 ## 📊 Data
 Data is collected from Boston Consulting Grup (BCG) client with some data masking without changing the meaning of the data. Refer to the image below for specific column descriptions:
 
-![Dataset Description](dataset-description.png)
+![Dataset Description](dataset_description.jpg)
 
 ---
 
