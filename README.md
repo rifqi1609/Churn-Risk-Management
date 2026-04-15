@@ -9,7 +9,7 @@
 The energy market has undergone massive transformation—new players in the market have increased competition, new pricing models have given customers more flexibility, and a shift toward renewable energy have forced legacy utility companies to invest in new technologies. With more energy providers offering flexible rates, clean energy alternatives, and digital-first customer experiences, PowerCo has been losing customers to their competitors at a higher-than-average rate, eating into margins and threatening long-term growth.
 
 ## 🎯 Project Output
-The objective of this program gives recommendation action for handling potential churn customers
+The objective of this program gives recommendation action for handling potential churn customers. Overall, this project could save **56.42% of Potential Lost Profit from only handling 26,3% of Potential Churn Customers**.
 
 ---
 
@@ -18,12 +18,14 @@ The objective of this program gives recommendation action for handling potential
 2. **predictive_model.ipynb** - Main notebook for building model.
 3. **client_data.csv** - Customer dataset.
 4. **price_data.csv** - Price dataset of customers
-5. **client_df_report.html** - EDA of client dataset.
-6. **price_df_report.html** - EDA of price dataset.
-7. **eda_2_report.html** - EDA of transformed dataset.
-8. **train_test_comparison_report.html** - EDA of trained data.
-9. **deployment/** - Folder containing scripts for the deployment environment.
-10. **dataset_description.png** - Detailed description of the dataset columns.
+5. **EDA_client_df.html** - EDA of client dataset.
+6. **EDA_price_df.html** - EDA of price dataset.
+7. **EDA_transformed.html** - EDA of transformed dataset.
+8. **EDA_train_test.html** - EDA of trained data.
+9. **descriptive_EDA.ipynb** - Notebook for preparing descriptive visualization data.
+10. **EDA.html** - EDA for descriptive visualization data.
+11. **deployment/** - Folder containing scripts for the deployment environment.
+12. **dataset_description.png** - Detailed description of the dataset columns.
 
 ---
 

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import dill
+import altair as alt
 from datetime import datetime
 
 # Price Transformation
@@ -42,21 +43,21 @@ def add_price_features(X, price_df):
 def transform_categorical_features(X):
     channel_mapping = {
         'foosdfpfkusacimwkcsosbicdxkicaua': 'Direct Sales',
-        'usilxuppasemubllopkaafesmlibmsdf': 'Online',
-        'lmkebamcaaclubfxadlmueccxoimlema': 'Broker',
-        'ewpakwlliwisiwduibdlfmalxowmwpci': 'Group Partnership',
+        'usilxuppasemubllopkaafesmlibmsdf': 'International Broker',
+        'lmkebamcaaclubfxadlmueccxoimlema': 'Local Broker',
+        'ewpakwlliwisiwduibdlfmalxowmwpci': 'Government Tender',
         'epumfxlbckeskwekxbiuasklxalciiuu': 'Other Channels',
         'fixdbufsefwooaasfcxdxadsiekoceaa': 'Other Channels',
         'sddiedcslfslkckwlfkdpoeeailfpeds': 'Other Channels',
-        'MISSING': 'Untracked Channels'
+        'MISSING': 'Untracked Channel'
     }
     X['channel_sales'] = X['channel_sales'].replace(channel_mapping)
     
     origin_mapping = {
-        'kamkkxfxxuwbdslkwifmmcsiusiuosws': 'A (New Year)',
-        'lxidpiddsbxsbosboudacockeimpuepw': 'B (Strategic Partnership)',
-        'ldkssxwpmemidmecebumciepifcamkci': 'C (Exclusive Offers)',
-        'MISSING': 'Other Origins',
+        'kamkkxfxxuwbdslkwifmmcsiusiuosws': 'Special Offers',
+        'lxidpiddsbxsbosboudacockeimpuepw': 'Seasonal Offers',
+        'ldkssxwpmemidmecebumciepifcamkci': 'Referral',
+        'MISSING': 'Untracked Origin',
         'usapbepcfoloekilkwsdiboslwaxobdp': 'Other Origins',
         'ewxeelcelemmiwuafmddpobolfuxioce': 'Other Origins'
     }
@@ -134,20 +135,37 @@ def load_model():
 
     return model
 
-st.set_page_config(page_title="Churn Prediction App", layout="wide")
+# UI Setting
+st.set_page_config(page_title="Churn Prediction App", page_icon="⚡", layout="wide")
 
-st.title("📊 Customer Churn Prediction")
-st.markdown("Let me help you handle potential churned customer.")
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.image("https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&w=1200&q=80", use_container_width=True)
 
-st.sidebar.header("Input Data")
-upload_file = st.sidebar.file_uploader("Upload Customer Data", type=['csv'])
+st.title("⚡ PowerCo's Churn Risk Management")
+st.markdown("""
+This application predicts customer churn probabilities and recommends **Actionable Actions** to retain high-value customers.
+""")
+st.divider()
+
+# Sidebar Styling
+with st.sidebar:
+    st.header("⚙️ Data Configuration")
+    st.info("Please upload your latest customer data to start the prediction.")
+    upload_file = st.file_uploader("Upload Customer Data (CSV)", type=['csv'])
 
 if upload_file is not None:
     X_inf = pd.read_csv(upload_file)
-    st.write("### Data uploaded:", X_inf.head())
     
-    if st.button("Predict Churn"):
-        with st.spinner('Processing...'):
+    # Using Tabs for a cleaner layout
+    tab1, tab2 = st.tabs(["📊 Executive Dashboard", "📁 Data Preview & Download"])
+    
+    with tab2:
+        st.subheader("Input Data Preview")
+        st.dataframe(X_inf.head(), use_container_width=True)
+    
+    if st.sidebar.button("🚀 Run Prediction", type="primary", use_container_width=True):
+        with st.spinner('Analyzing data and running the model...'):
             try:
                 price_df = pd.read_csv('deployment/clean_price_data.csv') 
                 
@@ -162,58 +180,81 @@ if upload_file is not None:
                 X_inf = transform_categorical_features(X_inf)
         
                 # Grouping Bin
-                prob_bins = [
-                    -np.inf,
-                    0.122897,
-                    0.181997,
-                    0.227403,
-                    0.275547,
-                    0.331891,
-                    0.383967,
-                    0.438906,
-                    0.508089,
-                    0.606386,
-                    np.inf]
-
+                prob_bins = [-np.inf, 0.122897, 0.181997, 0.227403, 0.275547, 0.331891, 0.383967, 0.438906, 0.508089, 0.606386, np.inf]
                 decile_labels = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+                X_inf['Churn Decile'] = pd.cut(X_inf['Churn_Probability'], bins=prob_bins, labels=decile_labels)
 
-                X_inf['Churn Decile'] = pd.cut(
-                    X_inf['Churn_Probability'], 
-                    bins=prob_bins, 
-                    labels=decile_labels)
-
-                margin_bins = [
-                    -np.inf,
-                    93.99,
-                    207.57,
-                    422.38,
-                    np.inf]
-
+                margin_bins = [-np.inf, 93.99, 207.57, 422.38, np.inf]
                 margin_labels = ['Low', 'Lower-Mid', 'Upper-Mid', 'High']
-
-                X_inf['Customer Value Quantiles'] = pd.cut(
-                    X_inf['net_margin'], 
-                    bins=margin_bins, 
-                    labels=margin_labels)
+                X_inf['Customer Value Quantiles'] = pd.cut(X_inf['net_margin'], bins=margin_bins, labels=margin_labels)
                 
-                # Data Preparation
+                # Data Preparation 
                 X_inf = add_price_features(X_inf, price_df)
                 X_inf = transform_categorical_features(X_inf)
 
                 # Recommend Actions
-                X_inf['Recommedation Action'] = X_inf.apply(intervention_actions, axis=1)
-                X_inf = X_inf.sort_values(by='Recommedation Action', ascending=True).reset_index(drop=True)
+                X_inf['Recommendation Action'] = X_inf.apply(intervention_actions, axis=1)
+                X_inf = X_inf.sort_values(by='Recommendation Action', ascending=True).reset_index(drop=True)
                 
-                # Summary
-                st.success("Process Done!")
-                st.write("### Churn Handling Recommendation:", X_inf[['id', 'Recommedation Action']])
+                # ==========================================
+                # DASHBOARD UI FOR RESULTS
+                # ==========================================
+                with tab1:
+                    st.success("✅ Prediction Process Complete!")
+                    
+                    # High-level Metrics for Executives
+                    st.subheader("Executive Summary")
+                    col1, col2, col3 = st.columns(3)
+                    
+                    total_cust = len(X_inf)
+                    high_risk_cust = len(X_inf[X_inf['Recommendation Action'] == '1 - Personalized Intervention'])
+                    loyalty_cust = len(X_inf[X_inf['Recommendation Action'] == '2 - Special Loyalty Program'])
+                    
+                    col1.metric("Total Customers Analyzed", f"{total_cust:,}")
+                    col2.metric("Needs Intervention (High Risk)", f"{high_risk_cust:,}", delta="Top Priority", delta_color="inverse")
+                    col3.metric("Loyalty Program Candidates", f"{loyalty_cust:,}", delta="Low Risk - High Value", delta_color="normal")
+                    
+                    st.divider()
+                    
+                    # Action Recommendation Distribution Chart
+                    st.subheader("Action Recommendation Distribution")
+                    
+                    chart_data = X_inf['Recommendation Action'].value_counts().reset_index()
+                    chart_data.columns = ['Recommendation Action', 'Count']
+                    
+                    bar_chart = alt.Chart(chart_data).mark_bar().encode(
+                        x=alt.X('Recommendation Action', 
+                                title=None, 
+                                axis=alt.Axis(labelAngle=0)), # Memaksa label horizontal (0 derajat)
+                        y=alt.Y('Count', title='Number of Customers'),
+                        color=alt.Color('Recommendation Action', legend=None) # Opsional: menambahkan warna berbeda
+                    ).properties(
+                        height=400)
+            
+                    st.altair_chart(bar_chart, use_container_width=True)
+                    
+                    # Priority Results Table
+                    st.subheader("📋 Customer List by Priority")
+                    
+                    # Styling dataframe for readability
+                    display_df = X_inf[['id', 'Churn_Probability', 'Churn Decile', 'Customer Value Quantiles', 'Recommendation Action']]
+                    st.dataframe(display_df, use_container_width=True)
                 
-                # Download Button
-                csv = X_inf.to_csv(index=False).encode('utf-8')
-                st.download_button("Download Recommendation Action", csv, "recommendation_action.csv", "text/csv")
+                # Download Button in Tab 2
+                with tab2:
+                    st.subheader("Download Prediction Results")
+                    csv = X_inf.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="📥 Download Complete Data (.csv)", 
+                        data=csv, 
+                        file_name="recommendation_action.csv", 
+                        mime="text/csv",
+                        type="primary"
+                    )
                 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.sidebar.error(f"Error: {e}")
 
 else:
-    st.info("Please upload customer data on sidebar for prediction.")
+    # Empty state / waiting for instructions
+    st.info("👈 Please upload the customer CSV file on the left panel to view the dashboard.")
