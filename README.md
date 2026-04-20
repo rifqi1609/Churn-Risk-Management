@@ -53,3 +53,4 @@ Access the live application and supporting materials here:
 
 *   **🚀 Live Deployment:** [Churn Handling on HuggingFace](https://huggingface.co/spaces/RifqiAs/Churn_Risk_Management)
 *   **📊 Business Presentation:** [View Slides on Canva](https://canva.link/vab1ceqhl005dkr)
+*   **🎥 Video Presentation:** [Watch on Google Drive](https://drive.google.com/file/d/1K_9VaYynLSa_xOw1Q4NlZjv6fzcjCQt4/view?usp=sharing)
